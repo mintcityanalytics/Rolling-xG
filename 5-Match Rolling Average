@@ -14,21 +14,18 @@ showtext_auto()
 library(lubridate)
 
 ##FBref Data
-CLTFC_2022_url <- "https://fbref.com/en/squads/eb57545a/Charlotte-FC-Stats"
-##Pull Match Result Data
-CLTFC_2022 <- get_team_match_results(CLTFC_2022_url)
-##OPTIONAL: Delete rows of matches yet to be played (This is a little clunky I need to find a wrangling workaround for this)
-CLT_2022_2 <- CLTFC_2022[-c(14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34),]
+#Pull Match Result Data
+CLT_2022 <- get_team_match_results("https://fbref.com/en/squads/eb57545a/Charlotte-FC-Stats")
+Remove rows of matches yet to be played (This is a little clunky I need to find a wrangling workaround for this)
+CLT_2022_2 <- CLTFC_2022[-c(21,22,23,24,25,26,27,28,29,30,31,32,33,34),]
 ##Mutate Date as readable
 CLT_2022_2$Date <- as.Date(parse_date_time(CLT_2022_2$Date, "%y-%m-%d"))
 ##Add Rolling Average for xG 
-###Change k = 3 if you want to tweak the rolling average number. 
-###I'm using 3 due to small sample size, minimum of 5 rolling average recommended
-###Also not the best way to do it. Working on best practice for dplyr mutating
-xG_03 <- zoo::rollmean(CLT_2022_2$xG, k = 3, fill = NA)
-CLT_2022_2$xG_03 <- xG_03
-xGA_03 <- zoo::rollmean(CLT_2022_2$xGA, k = 3, fill = NA)
-CLT_2022_2$xGA_03 <- xGA_03
+###Change 'k = 5' if you want to tweak the rolling average number. 
+xG_05 <- zoo::rollmean(CLT_2022_2$xG, k = 5, fill = NA)
+CLT_2022_2$xG_05 <- xG_05
+xGA_05 <- zoo::rollmean(CLT_2022_2$xGA, k = 5, fill = NA)
+CLT_2022_2$xGA_05 <- xGA_05
 ##Add Colors
 MCB <- rgb(0, .52, .792, 1)
 MCG <- rgb(.635, .894, .722, 1)
@@ -38,8 +35,8 @@ MCY <- rgb(.89, .851, .635, 1)
 df <- CLT_2022_2 %>%
   select(Date, xG_03, xGA_03) %>%
   gather(key = "variable", value = "value", -Date)
-##OPTIONAL: Clean df to exclude NA's. First and last matches will not be counted 
-df_2 <- df[-c(1,2,13,14,15,26),]
+#Clean df to exclude NA's. 
+df_2 <- df[-c(1,2,19,20,21,22,39,40),]
 
 ##Plotting
 ggplot(df_2, aes(x = Date, y = value)) + 
@@ -73,4 +70,4 @@ ggplot(df_2, aes(x = Date, y = value)) +
           subtitle = "@MC__Analytics - MLS 2022 Season - 3 Game Rolling Average; First and Last Match Omitted", x = NULL, y = NULL)
 
 #Save Plot
-ggsave("3RA.png", width = 2000, height = 1000, units = "px")
+ggsave("5RA.png", width = 2000, height = 1000, units = "px")
